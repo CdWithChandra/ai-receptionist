@@ -15,7 +15,10 @@ from app.services.booking_service import BookingService
 router = APIRouter()
 
 #User endpiint for chat with AI receptionist
-@router.post("/chat",response_model=ChatResponse,tags=["Chat"])
+@router.post(
+        "/chat",
+        response_model=ChatResponse,
+        tags=["Chat"])
 def chat(request: ChatRequest) -> ChatResponse:
     """
     Handle incoming chat messages.
@@ -29,8 +32,11 @@ def chat(request: ChatRequest) -> ChatResponse:
     return ChatService.get_response(request.message)
 
 # Appointment booking endpoint
-@router.post("/booking",response_model=BookingResponse,tags=["Booking"])
-def book_appointment(request:BookingRequest) -> dict:
+@router.post(
+        "/booking",
+        response_model=BookingResponse,
+        tags=["Booking"])
+def book_appointment(request:BookingRequest) -> BookingResponse:
     """
     Book an appointment.
 
@@ -38,6 +44,6 @@ def book_appointment(request:BookingRequest) -> dict:
         request (BookingRequest): Appointment details.
 
     Returns:
-        dict: Booking confirmation.
+        BookingResponse: Booking confirmation.
     """
     return BookingService.book_appointment(request)
