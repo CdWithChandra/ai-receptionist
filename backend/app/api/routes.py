@@ -5,11 +5,14 @@
 # customers.py
 # health.py
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from httpx import request
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
 from app.schemas.booking import BookingRequest, BookingResponse
 from app.services.booking_service import BookingService
+from sqlalchemy.orm import Session
+from app.database.session import get_db
 
 
 router = APIRouter()
@@ -19,6 +22,7 @@ router = APIRouter()
         "/chat",
         response_model=ChatResponse,
         tags=["Chat"])
+
 def chat(request: ChatRequest) -> ChatResponse:
     """
     Handle incoming chat messages.
@@ -36,14 +40,12 @@ def chat(request: ChatRequest) -> ChatResponse:
         "/booking",
         response_model=BookingResponse,
         tags=["Booking"])
-def book_appointment(request:BookingRequest) -> BookingResponse:
+def book_appointment(
+    request: BookingRequest, 
+    db: Session = Depends(get_db)
+
+) -> BookingResponse:
     """
     Book an appointment.
-
-    Args:
-        request (BookingRequest): Appointment details.
-
-    Returns:
-        BookingResponse: Booking confirmation.
     """
-    return BookingService.book_appointment(request)
+    return BookingService.book_appointment(request, db)

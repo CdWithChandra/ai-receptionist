@@ -18,3 +18,17 @@ SessionLocal= sessionmaker(
 )
 
 Base = declarative_base()
+
+def get_db():
+        """
+    Create a database session for each request.
+
+    Yields:
+        Session: SQLAlchemy database session.
+    """
+        db = SessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+        
