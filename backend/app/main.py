@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.config import settings
-
+from app.api.routes import router
 
 # This creates your FastAPI application.
 app=FastAPI (
@@ -22,4 +22,5 @@ def health_check():
         "status": "healthy",
         "version": settings.APP_VERSION
     }
-    
+
+app.include_router(router)
