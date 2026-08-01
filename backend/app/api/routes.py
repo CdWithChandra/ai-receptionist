@@ -8,9 +8,13 @@
 from fastapi import APIRouter
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
+from app.schemas.booking import BookingRequest, BookingResponse
+from app.services.booking_service import BookingService
+
 
 router = APIRouter()
 
+#User endpiint for chat with AI receptionist
 @router.post("/chat",response_model=ChatResponse,tags=["Chat"])
 def chat(request: ChatRequest) -> ChatResponse:
     """
@@ -23,3 +27,17 @@ def chat(request: ChatRequest) -> ChatResponse:
         ChatResponse: Generated reply.
     """
     return ChatService.get_response(request.message)
+
+# Appointment booking endpoint
+@router.post("/booking",response_model=BookingResponse,tags=["Booking"])
+def book_appointment(request:BookingRequest) -> dict:
+    """
+    Book an appointment.
+
+    Args:
+        request (BookingRequest): Appointment details.
+
+    Returns:
+        dict: Booking confirmation.
+    """
+    return BookingService.book_appointment(request)
