@@ -1,7 +1,7 @@
 
 from sqlalchemy.orm import Session
 from app.database.models.appointment import Appointment
-from app.schemas.booking import BookingRequest, BookingResponse
+from app.schemas.booking import (AppointmentResponse,BookingRequest, BookingResponse)
 from sqlalchemy.orm import Session
 
 class BookingService:
@@ -11,9 +11,9 @@ class BookingService:
     @staticmethod
     def book_appointment(
         request: BookingRequest,
-        db: Session) -> dict:
+        db: Session) -> BookingResponse:
         """
-       Save an appointment to the database. ̑
+       Save an appointment to the database. 
 
         Args:
             request (BookingRequest): Appointment details.
@@ -42,3 +42,20 @@ class BookingService:
                 f"{request.appointment_time} "
                 )
         )
+
+    @staticmethod
+    def get_appointments(
+        db: Session,
+    ) -> list[AppointmentResponse]:
+        """
+        Retrieve all appointments from the database.
+
+        Args:
+          db (Session): Database session.
+
+        Returns:
+         list[AppointmentResponse]: List of appointments.
+        """
+        appointments = db.query(Appointment).all()
+        return appointments
+ 

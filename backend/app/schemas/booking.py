@@ -15,3 +15,14 @@ class BookingResponse(BaseModel):
     status: str
     message: str
 
+class AppointmentResponse(BookingRequest):
+    """
+    Response schema for an appointment.
+    """
+    id: int
+
+    # You may create this schema directly from a SQLAlchemy model.
+    # FastAPI and Pydantic will automatically convert SQLAlchemy objects into JSON responses.
+    model_config = {
+        "from_attributes": True
+    }

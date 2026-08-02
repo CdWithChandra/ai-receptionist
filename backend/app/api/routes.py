@@ -1,27 +1,24 @@
-#Instead of putting all endpoints inside main.py, every feature gets its own router.
-# Each router will manage its own endpoints
-# chat.py
-# appointments.py
-# customers.py
-# health.py
-
 from fastapi import APIRouter, Depends
-from httpx import request
-from app.schemas.chat import ChatRequest, ChatResponse
-from app.services.chat_service import ChatService
-from app.schemas.booking import BookingRequest, BookingResponse
-from app.services.booking_service import BookingService
 from sqlalchemy.orm import Session
-from app.database.session import get_db
 
+from app.database.session import get_db
+from app.schemas.booking import (
+    AppointmentResponse,
+    BookingRequest, 
+    BookingResponse,
+)
+from app.schemas.chat import ChatRequest, ChatResponse
+from app.services.booking_service import BookingService
+from app.services.chat_service import ChatService
 
 router = APIRouter()
 
-#User endpiint for chat with AI receptionist
+# # User endpoint for chat with AI receptionist
 @router.post(
-        "/chat",
-        response_model=ChatResponse,
-        tags=["Chat"])
+    "/chat",
+    response_model=ChatResponse,
+    tags=["Chat"]
+)
 
 def chat(request: ChatRequest) -> ChatResponse:
     """
@@ -37,9 +34,10 @@ def chat(request: ChatRequest) -> ChatResponse:
 
 # Appointment booking endpoint
 @router.post(
-        "/booking",
-        response_model=BookingResponse,
-        tags=["Booking"])
+    "/booking",
+    response_model=BookingResponse,
+    tags=["Booking"]
+)
 def book_appointment(
     request: BookingRequest, 
     db: Session = Depends(get_db)
@@ -49,3 +47,17 @@ def book_appointment(
     Book an appointment.
     """
     return BookingService.book_appointment(request, db)
+
+# Retrieve all appointments
+@router.get(
+    "/appointments",
+    response_model=list[AppointmentResponse],
+    tags=["Booking"],
+)
+def get_appointments(
+    db: Session = Depends(get_db)
+) -> list[AppointmentResponse]:
+    """
+    Retrieve all appointments.
+    """
+    return BookingService.get_appointments(db)
