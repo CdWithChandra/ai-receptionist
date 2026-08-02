@@ -1,49 +1,43 @@
 from app.ai.prompts import SYSTEM_PROMPT
+from app.schemas.chat import ChatIntent
 
 class BookingAgent:
     """
     AI agent responsible for understanding
-    user messages and generating responses.
+    user messages and detecting user intent.
     """
 
     @staticmethod
     def process_message(message: str) -> str:
         """
-        Process an incoming user message.
+        Detect the user's intent.
 
         Args:
-            message (str): User message.
+           message (str): User message.
 
         Returns:
-            str: AI response.
+           ChatIntent: Detected intent.
         """
         message = message.strip().lower()
 
         if not message:
-            return "Please enter a message."
+            return ChatIntent(intent="empty")
+
         if any(word in message for word in ["hi", "hello", "hey"]):
-            return (
-               "Hello! Welcome to AI Receptionist. "
-                "How can I help you today?"
-            )
+            return ChatIntent(intent="greeting")
+
         if "book" in message:
-            return (
-                "Sure! I'd be happy to help you book an appointment."
-            )
-        if "appointment" in message and(
+            return ChatIntent(intent="book_appointment")
+
+        if "appointment" in message and (
             "show" in message or "view" in message
         ):
-            return (
-                 "I can help you view your appointments."
-            )
+            return ChatIntent(intent="show_appointments")
+
         if "update" in message:
-            return (
-                "I can help you update your appointment."
-            )
+            return ChatIntent(intent="update_appointment")
+
         if "cancel" in message or "delete" in message:
-            return (
-                  "I can help you cancel your appointment."
-            )
-        return (
-            "I'm sorry, I didn't understand your request."
-        )
+            return ChatIntent(intent="cancel_appointment")
+
+        return ChatIntent(intent="unknown")

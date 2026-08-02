@@ -20,17 +20,16 @@ router = APIRouter()
     tags=["Chat"]
 )
 
-def chat(request: ChatRequest) -> ChatResponse:
+def chat(request: ChatRequest,
+         db: Session = Depends(get_db)
+) -> ChatResponse:
     """
     Handle incoming chat messages.
-
-    Args:
-        request (ChatRequest): User message.
-
-    Returns:
-        ChatResponse: Generated reply.
     """
-    return ChatService.get_response(request.message)
+    return ChatService.get_response(
+        request.message,
+        db
+    )
 
 # Appointment booking endpoint
 @router.post(
