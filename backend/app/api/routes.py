@@ -61,3 +61,23 @@ def get_appointments(
     Retrieve all appointments.
     """
     return BookingService.get_appointments(db)
+
+# Update an existing appointment 
+@router.put(
+    "/booking/{appointment_id}",
+    response_model=BookingResponse,
+    tags=["Booking"]
+)
+def update_appointment(
+    appointment_id: int,
+    request: BookingRequest,
+    db: Session = Depends(get_db)
+) -> BookingResponse:
+    """
+    Update an existing appointment.
+    """
+    return BookingService.update_appointment(
+        appointment_id, 
+        request, 
+        db,
+    )

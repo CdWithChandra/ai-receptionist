@@ -36,7 +36,7 @@ class BookingService:
         return BookingResponse(
             status="success",
             message=(
-                f"Appointment booked successfully for" 
+                f"Appointment booked successfully for " 
                 f"{request.customer_name} on "
                 f"{request.appointment_date} at "
                 f"{request.appointment_time} "
@@ -58,4 +58,49 @@ class BookingService:
         """
         appointments = db.query(Appointment).all()
         return appointments
- 
+
+    @staticmethod
+    def update_appointment(
+        appointment_id: int,
+        request: BookingRequest,
+        db: Session,
+    ) -> BookingResponse:
+      """
+          Update an existing appointment.
+
+      Args:
+          appointment_id (int): Appointment ID.
+          request (BookingRequest): Updated appointment details.
+          db (Session): Database session.
+
+    Returns:
+        BookingResponse: Status message.
+      """
+      # Find one record based on filter criteria. If no record is found , return None.
+      # Equivalent SQL: SELECT * FROM appointments WHERE id = appointment_id LIMIT 1;
+      appointment = (
+          db.query(Appointment)
+          .filter(Appointment.id == appointment_id)
+          .first()
+     )
+      if appointment is None:
+          return AppointmentResponse(
+              status="error",
+              message=f"Appointment with ID {appointment_id} not found."
+          )
+
+      # Update values
+      appointment.customer_name = request.customer_name
+      appointment.appointment_date = request.appointment_date
+      appointment.appointment_time = request.appointment_time
+
+      db.commit()
+      db.refresh(appointment) #Reloads the object from the database to ensure it's synchronized with the latest stored values.
+
+      return BookingResponse(
+          status="success",
+          message=(
+              f"Appointment {appointment.id} updated successfully."
+          )
+         
+      )
