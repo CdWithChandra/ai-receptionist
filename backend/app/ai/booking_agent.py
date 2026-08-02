@@ -1,5 +1,7 @@
 from app.ai.prompts import SYSTEM_PROMPT
 from app.schemas.chat import ChatIntent
+import re
+from app.schemas.chat import ChatBookingData, ChatIntent
 
 class BookingAgent:
     """
@@ -41,3 +43,48 @@ class BookingAgent:
             return ChatIntent(intent="cancel_appointment")
 
         return ChatIntent(intent="unknown")
+    
+    @staticmethod
+    def extract_booking_data(message: str) -> ChatBookingData:
+        """
+        Extract booking details from a user's message.
+        """
+
+        customer_name = None
+        appointment_date = None
+        appointment_time = None
+
+        # Match: for Chandra
+        name_match = re.search(
+            r"for\s+([A-Za-z ]+?)\s+on",
+            message,
+            re.IGNORECASE,
+        )
+
+        if name_match:
+            customer_name = name_match.group(1).strip()
+
+        # Match: 2026-09-10
+        date_match = re.search(
+            r"\d{4}-\d{2}-\d{2}",
+            message,
+        )
+
+        if date_match:
+            appointment_date = date_match.group()
+
+        # Time Match: 11:00 AM
+        time_match = re.search(
+            r"\d{1,2}:\d{2}\s?(AM|PM)",
+            message,
+            re.IGNORECASE,
+        )
+
+        if time_match:
+            appointment_time = time_match.group().upper()
+
+        return ChatBookingData(
+            customer_name=customer_name,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time,
+        )

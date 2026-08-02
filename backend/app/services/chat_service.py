@@ -3,6 +3,8 @@ from app.schemas.chat import ChatIntent, ChatResponse
 from sqlalchemy.orm import Session
 from app.services.booking_service import BookingService
 from sqlalchemy.orm import Session
+from app.schemas.booking import BookingRequest
+
 
 class ChatService:
     """
@@ -27,10 +29,38 @@ class ChatService:
                 reply="Hello! Welcome to AI Receptionist. How can I help you today?"
             )
 
+        # if detected_intent.intent == "book_appointment":
+        #     return ChatResponse(
+        #         reply="Sure! I'd be happy to help you book an appointment."
+        #     )
         if detected_intent.intent == "book_appointment":
-            return ChatResponse(
-                reply="Sure! I'd be happy to help you book an appointment."
+            booking_data = BookingAgent.extract_booking_data(message)
+            if(
+                booking_data.customer_name is None
+                or booking_data.appointment_date is None
+                or booking_data.appointment_time is None
+            ):
+                return ChatResponse(
+                    reply=(
+                        "Please provide the customer's name, "
+                        "appointment date (YYYY-MM-DD), "
+                        "and appointment time."
+                    )
+                )
+        request = BookingRequest(
+            customer_name=booking_data.customer_name,
+            appointment_date=booking_data.appointment_date,
+            appointment_time=booking_data.appointment_time,
+        )
+        BookingService.book_appointment(request,db)
+        return ChatResponse(
+            reply=(
+                f"Appointment booked successfully for "
+                f"{booking_data.customer_name} on "
+                f"{booking_data.appointment_date} at "
+                f"{booking_data.appointment_time}."
             )
+        )
 
         if detected_intent.intent == "show_appointments":
             appointments = BookingService.get_appointments(db)

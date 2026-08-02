@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class ChatRequest(BaseModel):
     """ 
@@ -17,3 +18,11 @@ class ChatIntent(BaseModel):
     Represents the intent detected by the AI agent.
     """
     intent: str
+class ChatBookingData(BaseModel):
+    """
+    Information extracted from a chat message.
+    """
+
+    customer_name: Optional[str] = None
+    appointment_date: Optional[str] = None
+    appointment_time: Optional[str] = None
