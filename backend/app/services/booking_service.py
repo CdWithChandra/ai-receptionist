@@ -104,3 +104,40 @@ class BookingService:
           )
          
       )
+
+    @staticmethod
+    def delete_appointment(
+        appointment_id: int,
+        db: Session,   
+    ) -> BookingResponse:
+        """
+        Delete an existing appointment.
+
+        Args:
+            appointment_id (int): Appointment ID.
+            db (Session): Database session.
+
+        Returns:
+            BookingResponse: Status message.
+        """
+        appointment = (
+            db.query(Appointment)
+            .filter(Appointment.id == appointment_id)
+            .first()
+        )
+        if appointment is None:
+            return BookingResponse(
+                status="error",
+                message=f"Appointment with ID {appointment_id} not found."
+            )
+
+        db.delete(appointment) # DELETE FROM appointments WHERE id = ?;
+        db.commit() # deletion is permanently saved to the database.
+
+        return BookingResponse(
+            status="success",
+            message=f"Appointment {appointment_id} deleted successfully."
+        )
+    
+
+    

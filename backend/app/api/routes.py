@@ -48,6 +48,7 @@ def book_appointment(
     """
     return BookingService.book_appointment(request, db)
 
+
 # Retrieve all appointments
 @router.get(
     "/appointments",
@@ -61,6 +62,7 @@ def get_appointments(
     Retrieve all appointments.
     """
     return BookingService.get_appointments(db)
+
 
 # Update an existing appointment 
 @router.put(
@@ -80,4 +82,24 @@ def update_appointment(
         appointment_id, 
         request, 
         db,
+    )
+
+# Delete an existing appointment
+@router.delete(
+    "/booking/{appointment_id}",
+    response_model=BookingResponse,
+    tags=["Booking"]
+)
+def delete_appointment(
+    appointment_id: int,
+    db: Session = Depends(get_db)
+) -> BookingResponse:
+    """
+    Delete an existing appointment.
+    """
+    # Call the service layer to handle the deletion logic and return the response.
+    # No SQL, no business logic—just HTTP handling.
+    return BookingService.delete_appointment(
+        appointment_id,
+        db
     )
