@@ -34,18 +34,12 @@ class ChatService:
             return ChatService._handle_show_appointments(db)
 
         if detected_intent.intent == "update_appointment":
-            return ChatResponse(
-                reply="I can help you update an appointment."
-            )
-
+            return ChatService._handle_update()
+        
         if detected_intent.intent == "cancel_appointment":
-            return ChatResponse(
-                reply="I can help you cancel an appointment."
-            )
+            return ChatService._handle_cancel()
 
-        return ChatResponse(
-            reply="I'm sorry, I didn't understand your request."
-        )
+        return ChatService._handle_unknown()
 
     @staticmethod
     def _handle_greeting() -> ChatResponse:
@@ -112,6 +106,32 @@ class ChatService:
             )
         return ChatResponse(
             reply="\n".join(lines)
+        )
+    @staticmethod
+    def _handle_update() -> ChatResponse:
+         """
+         Handle update appointment requests.
+         """
+         return ChatResponse(
+             reply="I can help you update an appointment."
+         )
+
+    @staticmethod
+    def _handle_update() -> ChatResponse:
+        """
+        Handle cancel appointment requests.
+        """
+        return ChatResponse(
+            reply="I can help you cancel an appointment."
+        )
+
+    @staticmethod
+    def _handle_unknown() -> ChatResponse:
+        """
+        Handle unknown requests.
+        """
+        return ChatResponse(
+            reply= "I'm sorry, I didn't understand your request."
         )
 
 
