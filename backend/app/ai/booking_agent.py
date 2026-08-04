@@ -1,7 +1,7 @@
 from app.ai.prompts import SYSTEM_PROMPT
 from app.schemas.chat import ChatIntent
 import re
-from app.schemas.chat import ChatBookingData, ChatIntent, ChatUpdateData
+from app.schemas.chat import ChatBookingData, ChatIntent, ChatUpdateData, ChatCancelData
 
 class BookingAgent:
     """
@@ -129,4 +129,24 @@ class BookingAgent:
             appointment_date=appointment_date,
             appointment_time=appointment_time
         )
+
+    @staticmethod
+    def extract_cancel_data(message: str) -> ChatCancelData:
+        """
+        Extract cancellation details from a user's message.
+        """
+
+        appointment_id = None
+        id_match =re.search(
+            r"appointment\s+(\d+)",
+            message,
+            re.IGNORECASE
+        )
+        if id_match:
+            appointment_id = int(id_match.group(1))
+
+        return ChatCancelData(
+            appointment_id=appointment_id
+        )
+
         

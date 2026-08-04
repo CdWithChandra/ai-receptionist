@@ -27,7 +27,7 @@ class ChatBookingData(BaseModel):
     customer_name: Optional[str] = None
     appointment_date: Optional[str] = None
     appointment_time: Optional[str] = None
-    
+
 class ChatUpdateData(BaseModel):
     """
     Information extracted for updating an appointment.
@@ -35,3 +35,9 @@ class ChatUpdateData(BaseModel):
     appointment_id: int | None = None
     appointment_date: str | None = None
     appointment_time: str | None = None
+
+class ChatCancelData(BaseModel):
+    """
+    Information extracted for cancelling an appointment.
+    """
+    appointment_id: int | None = None

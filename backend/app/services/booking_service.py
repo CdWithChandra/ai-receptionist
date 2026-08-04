@@ -142,5 +142,3 @@ class BookingService:
             message=f"Appointment {appointment_id} deleted successfully."
         )
     
-
-    

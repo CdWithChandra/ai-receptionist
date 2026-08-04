@@ -28,16 +28,16 @@ class ChatService:
             return ChatService._handle_greeting()
 
         if detected_intent.intent == "book_appointment":
-            return ChatService._handle_booking(message,db)
+            return ChatService._handle_booking(message, db)
 
         if detected_intent.intent == "show_appointments":
             return ChatService._handle_show_appointments(db)
 
         if detected_intent.intent == "update_appointment":
-            return ChatService._handle_update(message,db)
+            return ChatService._handle_update(message, db)
         
         if detected_intent.intent == "cancel_appointment":
-            return ChatService._handle_cancel()
+            return ChatService._handle_cancel(message, db)
 
         return ChatService._handle_unknown()
 
@@ -80,8 +80,8 @@ class ChatService:
         return ChatResponse(
             reply=(
                 f"Appointment booked successfully for "
-                f"{booking_data.customer_name}"
-                f"{booking_data.appointment_date}"
+                f"{booking_data.customer_name} "
+                f"{booking_data.appointment_date} "
                 f"{booking_data.appointment_time}"
             )
         )
@@ -153,12 +153,34 @@ class ChatService:
          )
 
     @staticmethod
-    def _handle_cancel() -> ChatResponse:
+    def _handle_cancel(
+        messsage: str,
+        db: Session
+    ) -> ChatResponse:
         """
         Handle cancel appointment requclearests.
         """
+
+        cancel_data = BookingAgent.extract_cancel_data(messsage)
+        if cancel_data.appointment_id is None:
+            return ChatResponse(
+                reply="Please provide the appointment ID."
+            )
+        result = BookingService.delete_appointment(
+            cancel_data.appointment_id,
+            db
+        )
+
+        if result.status=="error":
+            return ChatResponse(
+                reply=result.message
+            )
+        
         return ChatResponse(
-            reply="I can help you cancel an appointment."
+            reply=(
+                f"Appointment {cancel_data.appointment_id} "
+                f" has been cancelled successfully."
+            )
         )
 
     @staticmethod
