@@ -34,7 +34,7 @@ class ChatService:
             return ChatService._handle_show_appointments(db)
 
         if detected_intent.intent == "update_appointment":
-            return ChatService._handle_update()
+            return ChatService._handle_update(message,db)
         
         if detected_intent.intent == "cancel_appointment":
             return ChatService._handle_cancel()
@@ -49,6 +49,7 @@ class ChatService:
         return ChatResponse(
             reply="Hello! Welcome to AI Receptionist. How can I help you today?"
         )
+    
     @staticmethod
     def _handle_booking(
         message: str,
@@ -84,6 +85,7 @@ class ChatService:
                 f"{booking_data.appointment_time}"
             )
         )
+    
     @staticmethod
     def _handle_show_appointments(
             db: Session
@@ -108,18 +110,52 @@ class ChatService:
             reply="\n".join(lines)
         )
     @staticmethod
-    def _handle_update() -> ChatResponse:
+    def _handle_update(message: str,
+                       db: Session) -> ChatResponse:
          """
          Handle update appointment requests.
          """
+         update_data = BookingAgent.extract_update_data(message)
+         if (
+             update_data.appointment_id is None
+             or update_data.appointment_date is None
+             or update_data.appointment_time is None
+         ):
+             return ChatResponse (
+                 reply= (
+                     "Please provide the appointment ID, "
+                     "new date (YYYY-MM-DD), "
+                     "and new time."
+                 )
+             )
+         request= BookingRequest(
+             customer_name="", # Placeholder for now
+             appointment_date=update_data.appointment_date,
+             appointment_time=update_data.appointment_time,
+         )
+
+         result = BookingService.update_appointment(
+             update_data.appointment_id,
+             request,
+             db
+         )
+         if result.status== "error":
+             return ChatResponse(
+                 reply=result.message
+             )
+
          return ChatResponse(
-             reply="I can help you update an appointment."
+             reply=(
+                 f"appointment {update_data.appointment_id} updated "
+                 f"to {update_data.appointment_date} to "
+                 f"{update_data.appointment_time}."
+             )
          )
 
     @staticmethod
-    def _handle_update() -> ChatResponse:
+    def _handle_cancel() -> ChatResponse:
         """
-        Handle cancel appointment requests.
+        Handle cancel appointment requclearests.
         """
         return ChatResponse(
             reply="I can help you cancel an appointment."

@@ -1,7 +1,7 @@
 from app.ai.prompts import SYSTEM_PROMPT
 from app.schemas.chat import ChatIntent
 import re
-from app.schemas.chat import ChatBookingData, ChatIntent
+from app.schemas.chat import ChatBookingData, ChatIntent, ChatUpdateData
 
 class BookingAgent:
     """
@@ -88,3 +88,45 @@ class BookingAgent:
             appointment_date=appointment_date,
             appointment_time=appointment_time,
         )
+
+    @staticmethod
+    def extract_update_data(message: str) -> ChatUpdateData:
+        """
+        Extract update details from a user's message.
+        """
+        appointment_id = None
+        appointment_date = None
+        appointment_time = None
+
+        # Id match:  appointment 4
+        id_match = re.search(
+            r"appointment\s+(\d+)",
+            message,
+            re.IGNORECASE
+        )
+        if id_match:
+            appointment_id =int(id_match.group(1))
+
+        # Match: 2026-09-30
+        date_match = re.search(
+            r"\d{4}-\d{2}-\d{2}",
+            message,
+        )
+        if date_match:
+            appointment_date= date_match.group()
+
+        # Time match: 2:30 PM
+        time_match= re.search(
+            r"\d{1,2}:\d{2}\s?(AM|PM)",
+            message,
+            re.IGNORECASE
+        )
+        if time_match:
+            appointment_time=time_match.group().upper()
+
+        return ChatUpdateData(
+            appointment_id=appointment_id,
+            appointment_date=appointment_date,
+            appointment_time=appointment_time
+        )
+        

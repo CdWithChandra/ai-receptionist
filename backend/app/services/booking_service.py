@@ -84,15 +84,18 @@ class BookingService:
           .first()
      )
       if appointment is None:
-          return AppointmentResponse(
+          return BookingResponse(
               status="error",
               message=f"Appointment with ID {appointment_id} not found."
           )
 
       # Update values
-      appointment.customer_name = request.customer_name
-      appointment.appointment_date = request.appointment_date
-      appointment.appointment_time = request.appointment_time
+      if request.customer_name:
+          appointment.customer_name = request.customer_name
+      if request.appointment_date:
+          appointment.appointment_date=request.appointment_date
+      if request.appointment_time:
+          appointment.appointment_time = request.appointment_time
 
       db.commit()
       db.refresh(appointment) #Reloads the object from the database to ensure it's synchronized with the latest stored values.
