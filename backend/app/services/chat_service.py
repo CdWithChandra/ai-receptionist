@@ -4,6 +4,7 @@ from app.ai.booking_agent import BookingAgent
 from app.schemas.booking import BookingRequest
 from app.schemas.chat import ChatIntent, ChatResponse
 from app.services.booking_service import BookingService
+from app.services.conversation_manager import ConversationManager
 
 
 class ChatService:
@@ -16,7 +17,59 @@ class ChatService:
         """
         Generate a response based on the detected intent.
         """
+        state =ConversationManager.get_state()
 
+        # Continue an existing booking conversation
+        if (
+            state["intent"]=="book_appointment"
+            and state["waiting_for"] == "customer_name"
+        ):
+            ConversationManager.update_state(
+                customer_name = message.strip(),
+                waiting_for = "appointment_date",
+            ) 
+            return ChatResponse (
+                reply="What appointment date would you like? (YYYY-MM-DD)"
+            )
+        if (
+            state["intent"] == "book_appointment"
+            and state["waiting_for"] == "appointment_date"
+        ):
+            ConversationManager.update_state(
+                appointment_date = message.strip(),
+                waiting_for="appointment_time",
+            )
+            return ChatResponse(
+                reply="What appointment time would you like? (e.g., 10:30 AM)"     
+         )
+
+        if (
+            state["intent"] == "book_appointment"
+            and state["waiting_for"] == "appointment_time"
+        ):
+            ConversationManager.update_state(
+                appointment_time = message.strip(),
+            )
+            state = ConversationManager.get_state()
+
+            request = BookingRequest(
+                 customer_name=state["customer_name"],
+                 appointment_date=state["appointment_date"],
+                 appointment_time=state["appointment_time"],
+            )
+
+            BookingService.book_appointment(request,db)
+            ConversationManager.clear_state()
+
+            return ChatResponse(
+                reply=(
+                    f"Appointment booked successfully for "
+                    f"{request.customer_name} on "
+                    f"{request.appointment_date} at "
+                    f"{request.appointment_time}."
+                )
+            )
+        
         detected_intent: ChatIntent = BookingAgent.process_message(message)
 
         if detected_intent.intent == "empty":
@@ -58,9 +111,22 @@ class ChatService:
         """
         Handle appointment booking requests.
         """
+        state = ConversationManager.get_state()
         booking_data = BookingAgent.extract_booking_data(message)
         if (
             booking_data.customer_name is None 
+            and booking_data.appointment_date is None
+            and booking_data.appointment_time is None
+        ):
+            ConversationManager.update_state(
+                intent="book_appointment",
+                waiting_for="customer_name",
+            )
+            return ChatResponse(
+                reply="Sure! What's the customer's name?"
+            )
+        if (
+            booking_data.customer_name is None
             or booking_data.appointment_date is None
             or booking_data.appointment_time is None
         ):
@@ -77,12 +143,13 @@ class ChatService:
             appointment_time=booking_data.appointment_time
         )
         BookingService.book_appointment(request,db)
+        ConversationManager.clear_state()
         return ChatResponse(
             reply=(
                 f"Appointment booked successfully for "
-                f"{booking_data.customer_name} "
-                f"{booking_data.appointment_date} "
-                f"{booking_data.appointment_time}"
+                f"{booking_data.customer_name} on "
+                f"{booking_data.appointment_date} at "
+                f"{booking_data.appointment_time}."
             )
         )
     
