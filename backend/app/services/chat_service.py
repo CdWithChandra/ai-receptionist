@@ -5,6 +5,7 @@ from app.schemas.booking import BookingRequest
 from app.schemas.chat import ChatIntent, ChatResponse
 from app.services.booking_service import BookingService
 from app.services.conversation_manager import ConversationManager
+from app.services.ai_service import AIService
 
 
 class ChatService:
@@ -92,7 +93,7 @@ class ChatService:
         if detected_intent.intent == "cancel_appointment":
             return ChatService._handle_cancel(message, db)
 
-        return ChatService._handle_unknown()
+        return AIService.get_ai_response(message)
 
     @staticmethod
     def _handle_greeting() -> ChatResponse:
