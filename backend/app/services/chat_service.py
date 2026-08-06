@@ -143,15 +143,17 @@ class ChatService:
             appointment_date=booking_data.appointment_date,
             appointment_time=booking_data.appointment_time
         )
-        BookingService.book_appointment(request,db)
+        request = BookingRequest(
+            customer_name = booking_data.customer_name,
+            appointment_date = booking_data.appointment_date,
+            appointment_time = booking_data.appointment_time
+        )
+        result = BookingService.book_appointment(
+            request,db
+        )
         ConversationManager.clear_state()
         return ChatResponse(
-            reply=(
-                f"Appointment booked successfully for "
-                f"{booking_data.customer_name} on "
-                f"{booking_data.appointment_date} at "
-                f"{booking_data.appointment_time}."
-            )
+            reply=result.message
         )
     
     @staticmethod

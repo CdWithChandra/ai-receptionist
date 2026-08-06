@@ -22,7 +22,28 @@ class BookingService:
         Returns:
             BookingResponse: Booking confirmation.
         """
+        # Check for duplicate appointment
+        existing_appointment = (
+            db.query(Appointment)
+            .filter(
+                Appointment.customer_name == request.customer_name,
+                Appointment.appointment_date == request.appointment_date,
+                Appointment.appointment_time == request.appointment_time
+            )
+            .first()
+        )
 
+        if existing_appointment:
+            return BookingResponse(
+                status="error",
+                message=(
+                    f"{request.customer_name} already has an appointment on "
+                    f"{request.appointment_date} at "
+                    f"{request.appointment_time}."
+                )
+            )
+
+         # Create new appointment
         appointment = Appointment(
             customer_name=request.customer_name,
             appointment_date=request.appointment_date,
