@@ -1,13 +1,73 @@
 
 from sqlalchemy.orm import Session
 from app.database.models.appointment import Appointment
-from app.schemas.booking import (AppointmentResponse,BookingRequest, BookingResponse)
-from sqlalchemy.orm import Session
+from app.schemas.booking import (AppointmentResponse, BookingRequest, BookingResponse)
 
 class BookingService:
     """
     Service class for appointment booking operations.
     """
+
+    @staticmethod
+    def _check_duplicate(
+        request: BookingRequest,
+        db: Session
+    ) -> BookingResponse | None:
+        """
+        Check whether the customer already has the same appointment.
+        """
+        existing_appointment =(
+            db.query(Appointment)
+            .filter(
+                Appointment.customer_name == request.customer_name,
+                Appointment.appointment_date == request.appointment_date,
+                Appointment.appointment_time == request.appointment_time,
+            )
+            .first()
+        )
+
+        if existing_appointment:
+            return BookingResponse(
+                status= "error",
+                message=(
+                    f"{request.customer_name} already has an appointment "
+                    f"on {request.appointment_date} at "
+                    f"{request.appointment_time}."
+                )
+            )
+        return None
+
+
+    @staticmethod
+    def _check_time_slot(
+        request: BookingRequest,
+        db: Session,
+    ) -> BookingResponse | None:
+        """
+        Check whether the requested time slot is already booked.
+        """
+        conflicting_appointment = (
+            db.query(Appointment)
+            .filter(
+                Appointment.appointment_date == request.appointment_date,
+                Appointment.appointment_time == request.appointment_time,
+            )
+            .first()
+        )
+        if conflicting_appointment:
+            return BookingResponse(
+                status ="error",
+                message=(
+                    f"Sorry, the time slot "
+                    f"{request.appointment_time} on "
+                    f"{request.appointment_date} "
+                    f"is already booked. "
+                    f"Please choose another time."
+                )
+            )
+        return None
+
+    
     @staticmethod
     def book_appointment(
         request: BookingRequest,
@@ -23,25 +83,19 @@ class BookingService:
             BookingResponse: Booking confirmation.
         """
         # Check for duplicate appointment
-        existing_appointment = (
-            db.query(Appointment)
-            .filter(
-                Appointment.customer_name == request.customer_name,
-                Appointment.appointment_date == request.appointment_date,
-                Appointment.appointment_time == request.appointment_time
-            )
-            .first()
+        duplicate_result = BookingService._check_duplicate(
+            request,
+            db
         )
+        if duplicate_result:
+            return duplicate_result
 
-        if existing_appointment:
-            return BookingResponse(
-                status="error",
-                message=(
-                    f"{request.customer_name} already has an appointment on "
-                    f"{request.appointment_date} at "
-                    f"{request.appointment_time}."
-                )
-            )
+        # Check whether the requested time slot is already booked
+        conflict_result = BookingService._check_time_slot(
+            request,db
+        )
+        if conflict_result:
+            return conflict_result
 
          # Create new appointment
         appointment = Appointment(
@@ -61,7 +115,7 @@ class BookingService:
                 f"{request.customer_name} on "
                 f"{request.appointment_date} at "
                 f"{request.appointment_time} "
-                )
+                ),
         )
 
     @staticmethod
@@ -113,8 +167,10 @@ class BookingService:
       # Update values
       if request.customer_name:
           appointment.customer_name = request.customer_name
+
       if request.appointment_date:
           appointment.appointment_date=request.appointment_date
+
       if request.appointment_time:
           appointment.appointment_time = request.appointment_time
 
@@ -156,7 +212,7 @@ class BookingService:
             )
 
         db.delete(appointment) # DELETE FROM appointments WHERE id = ?;
-        db.commit() # deletion is permanently saved to the database.
+        db.commit()            # deletion is permanently saved to the database.
 
         return BookingResponse(
             status="success",
