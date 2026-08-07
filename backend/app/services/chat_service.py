@@ -230,28 +230,70 @@ class ChatService:
         db: Session
     ) -> ChatResponse:
         """
-        Handle cancel appointment requclearests.
+        Handle appointment cancellation requests.
         """
 
         cancel_data = BookingAgent.extract_cancel_data(messsage)
-        if cancel_data.appointment_id is None:
-            return ChatResponse(
-                reply="Please provide the appointment ID."
-            )
-        result = BookingService.delete_appointment(
-            cancel_data.appointment_id,
-            db
-        )
 
-        if result.status=="error":
+        if cancel_data.appointment_id is not None:
+            result = BookingService.delete_appointment(
+                cancel_data.appointment_id,
+                db
+            )
             return ChatResponse(
                 reply=result.message
+            )
+
+        # Cancel using customer name
+        if cancel_data.customer_name is not None:
+            appointments = BookingService.get_appointments(db)
+            customer_appointments = [
+                appointment 
+                for appointment in appointments
+                if appointment .customer_name.lower()
+                == cancel_data.customer_name.lower()
+            ]
+
+            if not customer_appointments:
+                return ChatResponse (
+                    reply= (
+                        f"No appointment found for "
+                        f"{cancel_data.customer_name}."
+                    )
+                )
+
+            # Only one appointment found
+            if len(customer_appointments) == 1:
+                result = BookingService.delete_appointment_by_name(
+                    cancel_data.customer_name,
+                    db
+                )
+
+                return ChatResponse(
+                    reply=result.message
+                )
+
+            # Multiple appointments found
+            appointment_list = "\n".join(
+               (
+                   f"{appointment.id}. "
+                   f"{appointment.appointment_date} at "
+                   f"{appointment.appointment_time}"
+               )
+               for appointment in customer_appointments
+            )
+
+            return ChatResponse (
+                reply=(
+                    f"{cancel_data.customer_name} has multiple appointments:\n"
+                    f"{appointment_list}\n"
+                    f"Please provide the appointment ID you want to cancel."
+                )
             )
         
         return ChatResponse(
             reply=(
-                f"Appointment {cancel_data.appointment_id} "
-                f" has been cancelled successfully."
+                "Please provide an appointment ID or customer name."  
             )
         )
 

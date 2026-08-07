@@ -148,6 +148,9 @@ class BookingAgent:
         """
 
         appointment_id = None
+        customer_name = None
+
+        # Match: appointment 11
         id_match =re.search(
             r"appointment\s+(\d+)",
             message,
@@ -156,8 +159,22 @@ class BookingAgent:
         if id_match:
             appointment_id = int(id_match.group(1))
 
+        # Match:
+        # Cancel Kiran's appointment
+        # Cancel Kiran appointment
+        # Delete Rahul's appointment
+        name_match = re.search(
+            r"(?:cancel|delete)\s+([A-Za-z ]+?)(?:'s)?\s+appointment",
+            message,
+            re.IGNORECASE
+        )
+
+        if name_match:
+            customer_name = name_match.group(1).strip()
+
         return ChatCancelData(
-            appointment_id=appointment_id
+            appointment_id=appointment_id,
+            customer_name=customer_name,
         )
 
         

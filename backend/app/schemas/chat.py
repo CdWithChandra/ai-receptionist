@@ -42,3 +42,4 @@ class ChatCancelData(BaseModel):
     Information extracted for cancelling an appointment.
     """
     appointment_id: int | None = None
+    customer_name: str | None = None
