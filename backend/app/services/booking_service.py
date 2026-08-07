@@ -39,6 +39,72 @@ class BookingService:
 
 
     @staticmethod
+    def _check_duplicate_for_update(
+        appointment_id: int,
+        request: BookingRequest,
+        db: Session
+    ) -> BookingResponse | None:
+        """
+        Check for duplicate appointments while excluding
+        the appointment being updated.
+        """
+        existing_appointment =(
+            db.query(Appointment)
+            .filter(
+                Appointment.id != appointment_id,
+                Appointment.customer_name == request.customer_name,
+                Appointment.appointment_date == request.appointment_date,
+                Appointment.appointment_time == request.appointment_time,
+            )
+            .first()
+        )
+
+        if existing_appointment:
+            return BookingResponse(
+                status="error",
+                message=(
+                    f"{request.customer_name} already has an appointment "
+                    f"on {request.appointment_date} at "
+                    f"{request.appointment_time}."
+                )
+            )
+        return None
+
+    @staticmethod
+    def _check_time_slot_for_update(
+        appointment_id: int,
+        request: BookingRequest,
+        db: Session
+    ) -> BookingResponse | None:
+        """
+        Check whether the requested time slot is already booked,
+        excluding the appointment being updated.
+        """
+
+        conflicting_appointment = (
+            db.query(Appointment)
+            .filter(
+                Appointment.id != appointment_id,
+                Appointment.appointment_date == request.appointment_date,
+                Appointment.appointment_time == request.appointment_time,
+            )
+            .first()
+        )
+
+        if conflicting_appointment:
+            return BookingResponse(
+                status="error",
+                message=(
+                    f"Sorry, the time slot "
+                    f"{request.appointment_time} on "
+                    f"{request.appointment_date} "
+                    f"is already booked. "
+                    f"Please choose another time."
+                )
+            )
+        return None
+
+    @staticmethod
     def _check_time_slot(
         request: BookingRequest,
         db: Session,
@@ -163,6 +229,24 @@ class BookingService:
               status="error",
               message=f"Appointment with ID {appointment_id} not found."
           )
+      
+      duplicate_result = BookingService._check_duplicate_for_update(
+          appointment_id,
+          request,
+          db
+      )
+
+      if duplicate_result:
+          return duplicate_result
+
+      conflict_result = BookingService._check_time_slot_for_update(
+          appointment_id,
+          request,
+          db
+      )
+
+      if conflict_result:
+          return conflict_result
 
       # Update values
       if request.customer_name:
