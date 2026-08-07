@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+import re
 
 from app.ai.booking_agent import BookingAgent
 from app.schemas.booking import BookingRequest
@@ -32,45 +33,69 @@ class ChatService:
             return ChatResponse (
                 reply="What appointment date would you like? (YYYY-MM-DD)"
             )
+        
         if (
             state["intent"] == "book_appointment"
             and state["waiting_for"] == "appointment_date"
         ):
+            appointment_date = message.strip()
+
+            # Validate date format: YYYY-MM-DD
+            if not re.fullmatch(
+                r"\d{4}-\d{2}-\d{2}",
+                appointment_date,
+            ):
+                return ChatResponse(
+                    reply="Please enter the appointment date in YYYY-MM-DD format."
+                )
+ 
             ConversationManager.update_state(
-                appointment_date = message.strip(),
+                appointment_date = appointment_date,
                 waiting_for="appointment_time",
             )
             return ChatResponse(
                 reply="What appointment time would you like? (e.g., 10:30 AM)"     
          )
 
+        
         if (
             state["intent"] == "book_appointment"
             and state["waiting_for"] == "appointment_time"
         ):
+            appointment_time = message.strip().upper()
+            # Validate time format: HH:MM AM/PM
+            if not re.fullmatch(
+                r"(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)",
+                appointment_time,
+            ):
+                return ChatResponse(
+                    reply="Please enter the appointment time in a valid format, "
+                    "for example 10:30 AM."
+                )
             ConversationManager.update_state(
-                appointment_time = message.strip(),
+                appointment_time= appointment_time,
             )
             state = ConversationManager.get_state()
-
-            request = BookingRequest(
-                 customer_name=state["customer_name"],
-                 appointment_date=state["appointment_date"],
-                 appointment_time=state["appointment_time"],
+            request= BookingRequest(
+                customer_name=state["customer_name"],
+                appointment_date=state["appointment_date"],
+                appointment_time=state["appointment_time"],
+            )
+            result = BookingService.book_appointment(
+                request,
+                db,
             )
 
-            BookingService.book_appointment(request,db)
-            ConversationManager.clear_state()
-
-            return ChatResponse(
-                reply=(
-                    f"Appointment booked successfully for "
-                    f"{request.customer_name} on "
-                    f"{request.appointment_date} at "
-                    f"{request.appointment_time}."
+            if result.status == "error":
+                return ChatResponse(
+                    reply=result.message
                 )
+            ConversationManager.clear_state()
+            return ChatResponse(
+                reply=result.message
             )
-        
+
+        # Detect a new intent
         detected_intent: ChatIntent = BookingAgent.process_message(message)
 
         if detected_intent.intent == "empty":
