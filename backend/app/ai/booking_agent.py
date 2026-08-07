@@ -95,6 +95,7 @@ class BookingAgent:
         Extract update details from a user's message.
         """
         appointment_id = None
+        customer_name = None
         appointment_date = None
         appointment_time = None
 
@@ -106,6 +107,15 @@ class BookingAgent:
         )
         if id_match:
             appointment_id =int(id_match.group(1))
+
+        # Match: for Rahul
+        name_match =re.search(
+            r"for\s+([A-Za-z ]+?)(?=\s+(?:to|on|at)\s+)",
+            message,
+            re.IGNORECASE
+        )
+        if name_match:
+            customer_name = name_match.group(1).strip()
 
         # Match: 2026-09-30
         date_match = re.search(
@@ -126,6 +136,7 @@ class BookingAgent:
 
         return ChatUpdateData(
             appointment_id=appointment_id,
+            customer_name= customer_name,
             appointment_date=appointment_date,
             appointment_time=appointment_time
         )

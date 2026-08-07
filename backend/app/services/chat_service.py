@@ -188,18 +188,19 @@ class ChatService:
          update_data = BookingAgent.extract_update_data(message)
          if (
              update_data.appointment_id is None
+             or update_data.customer_name is None
              or update_data.appointment_date is None
              or update_data.appointment_time is None
          ):
              return ChatResponse (
                  reply= (
                      "Please provide the appointment ID, "
-                     "new date (YYYY-MM-DD), "
+                     "customer name, new date (YYYY-MM-DD), "
                      "and new time."
                  )
              )
          request= BookingRequest(
-             customer_name="", # Placeholder for now
+             customer_name=update_data.customer_name,
              appointment_date=update_data.appointment_date,
              appointment_time=update_data.appointment_time,
          )
@@ -216,8 +217,9 @@ class ChatService:
 
          return ChatResponse(
              reply=(
-                 f"appointment {update_data.appointment_id} updated "
-                 f"to {update_data.appointment_date} to "
+                 f"appointment {update_data.appointment_id} updated successfully "
+                 f"for {update_data.customer_name} on "
+                 f"{update_data.appointment_date} at "
                  f"{update_data.appointment_time}."
              )
          )

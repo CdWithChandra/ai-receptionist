@@ -33,6 +33,7 @@ class ChatUpdateData(BaseModel):
     Information extracted for updating an appointment.
     """
     appointment_id: int | None = None
+    customer_name: str | None = None
     appointment_date: str | None = None
     appointment_time: str | None = None
 
