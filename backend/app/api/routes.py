@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -77,11 +77,20 @@ def update_appointment(
     """
     Update an existing appointment.
     """
-    return BookingService.update_appointment(
+    result = BookingService.update_appointment(
         appointment_id, 
         request, 
         db,
     )
+
+    if result.status == "error":
+        raise HTTPException(
+            status_code=404,
+            detail=result.message,
+        )
+    return result
+
+
 
 # Delete an existing appointment
 @router.delete(
@@ -98,7 +107,15 @@ def delete_appointment(
     """
     # Call the service layer to handle the deletion logic and return the response.
     # No SQL, no business logic—just HTTP handling.
-    return BookingService.delete_appointment(
+    result = BookingService.delete_appointment(
         appointment_id,
         db
     )
+    if result.status == "error":
+        raise HTTPException(
+            status_code=404,
+            detail=result.message,
+        )
+
+    return result
+

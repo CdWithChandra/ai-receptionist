@@ -306,7 +306,7 @@ class BookingService:
     # Delete an appointment using the customer's name.
     @staticmethod
     def delete_appointment_by_name(
-        customer_anme: str,
+        customer_name: str,
         db: Session
     )-> BookingResponse:
         """
@@ -315,7 +315,7 @@ class BookingService:
         appointment = (
             db.query(Appointment)
             .filter(
-                Appointment.customer_name == customer_anme
+                Appointment.customer_name == customer_name
             )
             .first()
         )
@@ -324,7 +324,7 @@ class BookingService:
             return BookingResponse(
                 status="error",
                 message=(
-                    f"No appointment found for {customer_anme}."
+                    f"No appointment found for {customer_name}."
                 )
             )
         db.delete(appointment)
@@ -333,7 +333,7 @@ class BookingService:
         return BookingResponse(
             status="success",
             message=(
-                f"Appointment for {customer_anme} "
+                f"Appointment for {customer_name} "
                 f"has been cancelled successfully."
             )
         )
