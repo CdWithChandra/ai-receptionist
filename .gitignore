@@ -15,3 +15,10 @@ backend/.env
 
 # Node (future frontend)
 node_modules/
+
+
+# Terraform
+**/.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.*
