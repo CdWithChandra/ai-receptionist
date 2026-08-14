@@ -42,6 +42,7 @@ Base.metadata.create_all(bind=engine)
 def root():
     return {
          "message": f"Welcome to the {settings.APP_NAME}!"
+         "deployment": "Jenkins Build #2"
     }
 
 # Endpoint used to verify that the application is running.
