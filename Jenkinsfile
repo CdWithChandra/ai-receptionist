@@ -33,21 +33,10 @@ pipeline {
 
                     test -f backend/Dockerfile
                     test -f backend/requirements.txt
+                    test -f backend/.dockerignore
                     test -f k8s/deployment.yml
                     test -f k8s/namespace.yml
                     test -f k8s/service.yml
-                '''
-            }
-        }
-
-        stage('Application Tests') {
-            steps {
-                sh '''
-                    set -e
-
-                    echo "Application test stage"
-                    echo "Production Docker image will be validated during build."
-                    echo "No host-side Python test environment is required."
                 '''
             }
         }
@@ -56,7 +45,26 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    docker build -t "${IMAGE_NAME}" backend
+
+                    docker build \
+                        -t "${IMAGE_NAME}" \
+                        backend
+                '''
+            }
+        }
+
+                stage('Application Tests') {
+            steps {
+                sh '''
+                    set -e
+
+                    echo "Running application tests inside Docker image..."
+
+                    docker run --rm \
+                        "${IMAGE_NAME}" \
+                        python -m pytest tests -q
+
+                    echo "Application tests PASSED"
                 '''
             }
         }
