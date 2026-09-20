@@ -8,47 +8,7 @@ A highly scalable, production-grade intelligent assistant platform. This project
 
 This diagram illustrates how code commits automatically flow through the Jenkins automated worker node, push container images securely into AWS ECR, and execute a zero-downtime rolling deployment to the AWS EKS Cluster pods.
 
-```mermaid
-graph TD
-    %% CI/CD Pipeline
-    subhost[Developer Commit] -->|Git Push| Git[GitHub Repository]
-    Git -->|Webhook Trigger| Jenkins[Jenkins Pipeline Engine]
-    
-    subgraph Jenkins Build Agent
-        J1[1. Verify Source Code] --> J2[2. Docker Build]
-        J2 --> J3[3. Run Pytest Framework]
-        J3 --> J4[4. AWS ECR Authentication]
-        J4 --> J5[5. Docker Push Image]
-        J5 --> J6[6. Kubeconfig Access Update]
-        J6 --> J7[7. Kubectl Rolling Deploy]
-    end
-    
-    Jenkins --> J1
 
-    %% Cloud Infrastructure Target
-    subgraph AWS Cloud Architecture (ap-south-1)
-        ECR[(Amazon ECR Repository)]
-        
-        subgraph Amazon EKS Cluster (ai-receptionist-eks)
-            subgraph K8s Namespace: ai-receptionist
-                Ingress[K8s Service / Ingress]
-                Deploy[Deployment: ai-receptionist]
-                Pods[Application Pods / Containers]
-                
-                Ingress --> Deploy
-                Deploy --> Pods
-            end
-        end
-    end
-
-    J5 -->|Uploads Image| ECR
-    ECR -->|Pulls Image| Pods
-    J7 -->|Triggers Rollout Set Image| Deploy
-```
-
-*Note: The interactive flowchart above is written in native **Mermaid.js** syntax and will visually render directly on the GitHub repository landing page.*
-
----
 
 ## Key Features & Engineering Highlights
 * **Automated Infrastructure:** Full AWS public/private topology provisioning using **Terraform**, managing VPCs, subnets, routing tables, and EKS components.
