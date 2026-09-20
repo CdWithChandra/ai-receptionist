@@ -11,4 +11,3 @@ A production-grade, automated, and scalable intelligent assistant platform. This
 ---
 
 ## System Architecture
-*(Insert your architecture diagram below to show recruiters your system design)*
